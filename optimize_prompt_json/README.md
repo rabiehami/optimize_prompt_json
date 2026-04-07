@@ -121,25 +121,6 @@ Any model supported by [litellm](https://docs.litellm.ai/docs/providers) works. 
 | Google     | `GEMINI_API_KEY`    | `gemini/gemini-2.5-flash-lite`                  |
 | Mistral    | `MISTRAL_API_KEY`   | `mistral/mistral-small`                         |
 
-## Library usage
-
-You can also use `optimize-prompt-json` as a Python library in your own code:
-
-```python
-from optimize_prompt_json import OptimizationConfig, run_optimization
-import asyncio
-
-config = OptimizationConfig(
-    schema={"type": "object", "properties": {"foo": {"type": "string"}}},
-    text="Sample text to extract from."
-)
-
-result = asyncio.run(run_optimization(config))
-print(result["optimized_prompt"])
-```
-
-This allows you to integrate prompt optimization into your own pipelines or applications.
-
 ## Output
 
 The tool produces:
