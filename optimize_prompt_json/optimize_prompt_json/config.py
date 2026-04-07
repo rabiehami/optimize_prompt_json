@@ -42,7 +42,6 @@ API_MODELS = {
     },
 }
 
-MAX_TOKENS = 1000
 
 BLACKLIST_FIELDS = {
     "id",
