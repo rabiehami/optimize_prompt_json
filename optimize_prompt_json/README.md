@@ -50,17 +50,6 @@ pip install -e .
 
 The optimized prompt is available in the result dictionary.
 
-## Supported LLM providers
-
-Any model supported by [litellm](https://docs.litellm.ai/docs/providers) works. Set the corresponding API key in `.env`:
-
-| Provider   | Env variable        | Example model                                  |
-|------------|---------------------|-------------------------------------------------|
-| Groq       | `GROQ_API_KEY`      | `groq/llama-3.1-8b-instant`                    |
-| OpenAI     | `OPENAI_API_KEY`    | `gpt-4.1-nano`                                 |
-| DeepSeek   | `DEEPSEEK_API_KEY`  | `deepseek/deepseek-chat`                        |
-| Google     | `GEMINI_API_KEY`    | `gemini/gemini-2.5-flash-lite`                  |
-| Mistral    | `MISTRAL_API_KEY`   | `mistral/mistral-small`                         |
 
 ## Output
 
