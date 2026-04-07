@@ -77,6 +77,8 @@ class OptimizationConfig:
     rollback_threshold: float = 0.01
     rate_limit_delay: float = 0.0
     api_key: str = ""
+    api_key_text_gen: str = ""
+    api_key_optimizer: str = ""
     optimize: bool = True
     output_path: str = "optimized_prompt.txt"
     db_url: str = "sqlite:///optimize_prompt_json.db"
@@ -340,7 +342,7 @@ Return your answer as a JSON object with one field:
             llm_temperature=0.2,
             json_schema=json.dumps(json_schema),
             prompt_type=PROMPT_TYPE_REFINEMENT,
-            api_key=config.api_key,
+            api_key=config.api_key_optimizer or config.api_key,
         )
     ]
     results = await parallel_requests([prompt], meta, rate_limit_delay=config.rate_limit_delay)
@@ -391,7 +393,7 @@ Do not include explanations or preamble, just the deduplicated lessons list.
             llm_temperature=0.2,
             json_schema="",
             prompt_type="lesson_summarization",
-            api_key=config.api_key,
+            api_key=config.api_key_optimizer or config.api_key,
         )
     ]
     try:
@@ -483,7 +485,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
             llm_temperature=config.temp_article,
             json_schema=json.dumps(schema),
             prompt_type=PROMPT_TYPE_TEXT_GENERATION,
-            api_key=config.api_key,
+            api_key=config.api_key_text_gen or config.api_key,
         )
         for r in rand
     ]

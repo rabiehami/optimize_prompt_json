@@ -52,6 +52,8 @@ All parameters are passed via `OptimizationConfig`:
 | `schema`               | *(required)*                     | JSON schema as a dict                    |
 | `text`                 | *(required)*                     | Text to extract JSON from                |
 | `api_key`              | `""`                             | API key for your LLM provider            |
+| `api_key_text_gen`     | same as `api_key`               | API key for text generation model        |
+| `api_key_optimizer`    | same as `api_key`               | API key for prompt refinement model      |
 | `llm_model`            | `groq/llama-3.1-8b-instant`     | LLM for JSON generation and extraction   |
 | `llm_text_gen_model`   | same as `llm_model`             | LLM for synthetic text generation        |
 | `llm_optimizer_model`  | same as `llm_model`             | LLM for prompt refinement                |
