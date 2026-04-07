@@ -27,87 +27,28 @@ Or for development:
 pip install -e .
 ```
 
+
 ## Quick start
 
 1. Copy `.env.example` to `.env` and add your API key(s):
-   ```
-   GROQ_API_KEY=your_key_here
-   ```
+  ```
+  GROQ_API_KEY=your_key_here
+  ```
 
-2. Run the optimization:
-   ```bash
-   optimize-prompt-json \
-     --schema examples/weather_schema.json \
-     --text examples/weather_text.txt
-   ```
+2. Use the library in your Python code:
+  ```python
+  from optimize_prompt_json import OptimizationConfig, run_optimization
+  import asyncio
 
-3. The optimized prompt is saved to `optimized_prompt.txt` (and printed to console).
+  config = OptimizationConfig(
+     schema={"type": "object", "properties": {"foo": {"type": "string"}}},
+     text="Sample text to extract from."
+  )
+  result = asyncio.run(run_optimization(config))
+  print(result["optimized_prompt"])
+  ```
 
-## Usage
-
-```
-optimize-prompt-json --schema SCHEMA --text TEXT [OPTIONS]
-```
-
-### Required arguments
-
-| Argument    | Description                              |
-|-------------|------------------------------------------|
-| `--schema`  | Path to JSON schema file                 |
-| `--text`    | Path to text file to extract JSON from   |
-
-### Model configuration
-
-| Argument             | Default                        | Description                              |
-|----------------------|--------------------------------|------------------------------------------|
-| `--model`            | `groq/llama-3.1-8b-instant`   | LLM for JSON generation and extraction   |
-| `--text-gen-model`   | same as `--model`              | LLM for synthetic text generation        |
-| `--optimizer-model`  | same as `--model`              | LLM for prompt refinement                |
-
-### Hyperparameters
-
-| Argument              | Default | Description                           |
-|-----------------------|---------|---------------------------------------|
-| `--batch-size`        | 10      | Synthetic examples per step           |
-| `--max-steps`         | 10      | Maximum optimization steps            |
-| `--min-steps`         | 0       | Minimum steps before early stopping   |
-| `--temp-json`         | 0.5     | Temperature for JSON generation       |
-| `--temp-extract`      | 0.0     | Temperature for JSON extraction       |
-| `--temp-article`      | 0.0     | Temperature for text generation       |
-
-### Stopping criteria
-
-| Argument                  | Default | Description                          |
-|---------------------------|---------|--------------------------------------|
-| `--field-overlap-target`  | 0.99    | Stop when field overlap exceeds this |
-| `--json-distance-target`  | 0.01    | Stop when JSON distance drops below  |
-| `--schema-valid-target`   | 0.99    | Minimum schema validity rate         |
-| `--rollback-threshold`    | 0.01    | Score drop that triggers rollback    |
-
-### Output options
-
-| Argument            | Default                      | Description                     |
-|---------------------|------------------------------|---------------------------------|
-| `--output`, `-o`    | `optimized_prompt.txt`       | Output file for optimized prompt|
-| `--db-path`         | `optimize_prompt_json.db`    | SQLite database for run history |
-| `--log-dir`         | `logs`                       | Directory for log files         |
-| `--quiet`, `-q`     | off                          | Suppress step-by-step output    |
-| `--no-optimize`     | off                          | Run baseline only               |
-
-## Example with all options
-
-```bash
-optimize-prompt-json \
-  --schema my_schema.json \
-  --text my_article.txt \
-  --model groq/llama-3.1-8b-instant \
-  --text-gen-model groq/openai/gpt-oss-120b \
-  --optimizer-model groq/openai/gpt-oss-120b \
-  --batch-size 10 \
-  --max-steps 10 \
-  --temp-json 0.5 \
-  --output my_optimized_prompt.txt
-```
+The optimized prompt is available in the result dictionary.
 
 ## Supported LLM providers
 
