@@ -30,33 +30,24 @@ pip install -e .
 ## Quick start
 
 1. Copy `.env.example` to `.env` and add your API key(s):
-   ```
-   GROQ_API_KEY=your_key_here
-   ```
+  ```
+  GROQ_API_KEY=your_key_here
+  ```
 
-2. Run the optimization:
-   ```bash
-   optimize-prompt-json \
-     --schema examples/weather_schema.json \
-     --text examples/weather_text.txt
-   ```
+2. Use the library in your Python code:
+  ```python
+  from optimize_prompt_json import OptimizationConfig, run_optimization
+  import asyncio
 
-3. The optimized prompt is saved to `optimized_prompt.txt` (and printed to console).
+  config = OptimizationConfig(
+     schema={"type": "object", "properties": {"foo": {"type": "string"}}},
+     text="Sample text to extract from."
+  )
+  result = asyncio.run(run_optimization(config))
+  print(result["optimized_prompt"])
+  ```
 
-## Usage
-
-```
-optimize-prompt-json --schema SCHEMA --text TEXT [OPTIONS]
-```
-
-### Required arguments
-
-| Argument    | Description                              |
-|-------------|------------------------------------------|
-| `--schema`  | Path to JSON schema file                 |
-| `--text`    | Path to text file to extract JSON from   |
-
-### Model configuration
+The optimized prompt is available in the result dictionary.
 
 | Argument             | Default                        | Description                              |
 |----------------------|--------------------------------|------------------------------------------|

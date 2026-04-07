@@ -27,8 +27,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
 
-[project.scripts]
-optimize-prompt-json = "optimize_prompt_json.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/rabiehami/optimize_prompt_json"
