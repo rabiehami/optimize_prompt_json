@@ -29,8 +29,6 @@ pip install -e .
 
 ## Quick start
 
-Use the library in your Python code:
-
 ```python
 from optimize_prompt_json import OptimizationConfig, run_optimization
 import asyncio
@@ -38,101 +36,67 @@ import asyncio
 config = OptimizationConfig(
     schema={"type": "object", "properties": {"foo": {"type": "string"}}},
     text="Sample text to extract from.",
-    api_key="your_api_key_here"  # Pass your API key directly
+    llm_model="groq/llama-3.1-8b-instant",
 )
 result = asyncio.run(run_optimization(config))
 print(result["optimized_prompt"])
 ```
 
-The optimized prompt is available in the result dictionary.
+## Configuration
 
-| Argument             | Default                        | Description                              |
-|----------------------|--------------------------------|------------------------------------------|
-| `--model`            | `groq/llama-3.1-8b-instant`   | LLM for JSON generation and extraction   |
-| `--text-gen-model`   | same as `--model`              | LLM for synthetic text generation        |
-| `--optimizer-model`  | same as `--model`              | LLM for prompt refinement                |
+All parameters are passed via `OptimizationConfig`:
 
-### Hyperparameters
+| Parameter              | Default                          | Description                              |
+|------------------------|----------------------------------|------------------------------------------|
+| `schema`               | *(required)*                     | JSON schema as a dict                    |
+| `text`                 | *(required)*                     | Text to extract JSON from                |
+| `llm_model`            | `groq/llama-3.1-8b-instant`     | LLM for JSON generation and extraction   |
+| `llm_text_gen_model`   | same as `llm_model`             | LLM for synthetic text generation        |
+| `llm_optimizer_model`  | same as `llm_model`             | LLM for prompt refinement                |
+| `batch_size`           | `10`                            | Synthetic examples per step              |
+| `max_steps`            | `10`                            | Maximum optimization steps               |
+| `min_steps`            | `0`                             | Minimum steps before early stopping      |
+| `temp_json`            | `0.5`                           | Temperature for JSON generation          |
+| `temp_extract`         | `0.0`                           | Temperature for JSON extraction          |
+| `temp_article`         | `0.0`                           | Temperature for text generation          |
+| `field_overlap_target` | `0.99`                          | Stop when field overlap exceeds this     |
+| `json_distance_target` | `0.01`                          | Stop when JSON distance drops below      |
+| `schema_valid_target`  | `0.99`                          | Minimum schema validity rate             |
+| `rollback_threshold`   | `0.01`                          | Score drop that triggers rollback        |
+| `rate_limit_delay`     | `0.0`                           | Delay between API requests (seconds)     |
+| `optimize`             | `True`                          | Set to `False` to run baseline only      |
+| `output_path`          | `optimized_prompt.txt`          | Output file for optimized prompt         |
+| `db_url`               | `sqlite:///optimize_prompt_json.db` | SQLite database for run history      |
+| `log_dir`              | `logs`                          | Directory for log files                  |
+| `quiet`                | `False`                         | Suppress step-by-step console output     |
 
-| Argument              | Default | Description                           |
-|-----------------------|---------|---------------------------------------|
-| `--batch-size`        | 10      | Synthetic examples per step           |
-| `--max-steps`         | 10      | Maximum optimization steps            |
-| `--min-steps`         | 0       | Minimum steps before early stopping   |
-| `--temp-json`         | 0.5     | Temperature for JSON generation       |
-| `--temp-extract`      | 0.0     | Temperature for JSON extraction       |
-| `--temp-article`      | 0.0     | Temperature for text generation       |
+## Result dictionary
 
-### Stopping criteria
+`run_optimization()` returns a dict with the following keys:
 
-| Argument                  | Default | Description                          |
-|---------------------------|---------|--------------------------------------|
-| `--field-overlap-target`  | 0.99    | Stop when field overlap exceeds this |
-| `--json-distance-target`  | 0.01    | Stop when JSON distance drops below  |
-| `--schema-valid-target`   | 0.99    | Minimum schema validity rate         |
-| `--rollback-threshold`    | 0.01    | Score drop that triggers rollback    |
-
-### Output options
-
-| Argument            | Default                      | Description                     |
-|---------------------|------------------------------|---------------------------------|
-| `--output`, `-o`    | `optimized_prompt.txt`       | Output file for optimized prompt|
-| `--db-path`         | `optimize_prompt_json.db`    | SQLite database for run history |
-| `--log-dir`         | `logs`                       | Directory for log files         |
-| `--quiet`, `-q`     | off                          | Suppress step-by-step output    |
-| `--no-optimize`     | off                          | Run baseline only               |
-
-## Example with all options
-
-```bash
-optimize-prompt-json \
-  --schema my_schema.json \
-  --text my_article.txt \
-  --model groq/llama-3.1-8b-instant \
-  --text-gen-model groq/openai/gpt-oss-120b \
-  --optimizer-model groq/openai/gpt-oss-120b \
-  --batch-size 10 \
-  --max-steps 10 \
-  --temp-json 0.5 \
-  --output my_optimized_prompt.txt
-```
+| Key                 | Description                                          |
+|---------------------|------------------------------------------------------|
+| `run_id`            | Unique identifier for this optimization run          |
+| `optimized_prompt`  | The refined extraction prompt                        |
+| `num_steps`         | Number of optimization steps completed               |
+| `final_score`       | Composite quality score of the final step            |
+| `step_0_score`      | Composite quality score of the first step            |
+| `baseline_json`     | JSON extracted using the unoptimized prompt          |
+| `optimized_json`    | JSON extracted using the optimized prompt            |
+| `total_cost`        | Total API cost in USD                                |
+| `total_runtime`     | Total runtime in seconds                             |
 
 ## Supported LLM providers
 
-Any model supported by [litellm](https://docs.litellm.ai/docs/providers) works. Set the corresponding API key in `.env`:
+Any model supported by [litellm](https://docs.litellm.ai/docs/providers) works.
 
-| Provider   | Env variable        | Example model                                  |
-|------------|---------------------|-------------------------------------------------|
-| Groq       | `GROQ_API_KEY`      | `groq/llama-3.1-8b-instant`                    |
-| OpenAI     | `OPENAI_API_KEY`    | `gpt-4.1-nano`                                 |
-| DeepSeek   | `DEEPSEEK_API_KEY`  | `deepseek/deepseek-chat`                        |
-| Google     | `GEMINI_API_KEY`    | `gemini/gemini-2.5-flash-lite`                  |
-| Mistral    | `MISTRAL_API_KEY`   | `mistral/mistral-small`                         |
-
-## Library usage
-
-You can also use `optimize-prompt-json` as a Python library in your own code:
-
-```python
-from optimize_prompt_json import OptimizationConfig, run_optimization
-import asyncio
-
-config = OptimizationConfig(
-    schema={"type": "object", "properties": {"foo": {"type": "string"}}},
-    text="Sample text to extract from."
-)
-
-result = asyncio.run(run_optimization(config))
-print(result["optimized_prompt"])
-```
-
-This allows you to integrate prompt optimization into your own pipelines or applications.
+**Recommended:** Groq models (e.g., `groq/llama-3.1-8b-instant`) are a good choice due to their high rate limits and fast inference.
 
 ## Output
 
-The tool produces:
+The library produces:
 
-- **Console output**: Step-by-step progress, quality comparison (step 0 vs final), and the optimized prompt
+- **Console output**: Step-by-step progress and quality comparison (unless `quiet=True`)
 - **`optimized_prompt.txt`**: The refined extraction prompt ready for production use
 - **`optimize_prompt_json.db`**: SQLite database with full run history and metrics
 - **`logs/`**: Detailed log files for debugging
