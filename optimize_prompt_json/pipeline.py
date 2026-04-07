@@ -80,7 +80,6 @@ class OptimizationConfig:
     api_key_text_gen: str = ""
     api_key_optimizer: str = ""
     optimize: bool = True
-    output_path: str = "optimized_prompt.txt"
     db_url: str = "sqlite:///optimize_prompt_json.db"
     log_dir: str = "logs"
     quiet: bool = False
@@ -606,7 +605,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
 
 
 async def _extract_from_user_text(config, run_id, prompt_override=None, step_id=-1):
-    """Apply an extraction prompt to the user's actual text and return JSON string."""
+    """Apply an extraction prompt to the user's actual text and return (json_str, prompt_used)."""
     schema = config.schema
     if prompt_override:
         prompts = extract_json_from_text([config.text], schema, refined_prompt=prompt_override)
@@ -614,7 +613,9 @@ async def _extract_from_user_text(config, run_id, prompt_override=None, step_id=
         prompts = extract_json_from_text([config.text], schema)
 
     if not prompts:
-        return None
+        return None, None
+
+    prompt_used = prompts[0]
 
     meta = dict(
         run_id=run_id,
@@ -644,11 +645,7 @@ async def _extract_from_user_text(config, run_id, prompt_override=None, step_id=
     session.commit()
     session.close()
 
-    return response.get("json")
-
-
-# =====================================================================
-# Main Entry Point
+    return response.get("json"), prompt_used
 # =====================================================================
 
 
@@ -701,7 +698,7 @@ async def run_optimization(config: OptimizationConfig):
     session.close()
 
     # Baseline extraction on user's text
-    baseline_json = await _extract_from_user_text(config, run_id, prompt_override=None, step_id=-1)
+    baseline_json, baseline_prompt = await _extract_from_user_text(config, run_id, prompt_override=None, step_id=-1)
     logger.info(f"Baseline extraction: {baseline_json}")
 
     # --- Optimization loop ---
@@ -781,7 +778,7 @@ async def run_optimization(config: OptimizationConfig):
     optimized_prompt_text = best_prompt or refined_prompt
     optimized_json = None
     if optimized_prompt_text and config.text:
-        optimized_json = await _extract_from_user_text(
+        optimized_json, _ = await _extract_from_user_text(
             config, run_id, prompt_override=optimized_prompt_text, step_id=num_steps,
         )
 
@@ -813,11 +810,6 @@ async def run_optimization(config: OptimizationConfig):
         session.commit()
     session.close()
 
-    # Save optimized prompt to file
-    if optimized_prompt_text and config.output_path:
-        with open(config.output_path, "w", encoding="utf-8") as f:
-            f.write(optimized_prompt_text)
-
     # Print final results
     if not config.quiet:
         console.print_final_results(
@@ -832,8 +824,8 @@ async def run_optimization(config: OptimizationConfig):
             final_metrics=final_metrics,
             step_0_score=step_0_score,
             final_score=final_score,
+            baseline_prompt=baseline_prompt,
             optimized_prompt=optimized_prompt_text,
-            output_path=config.output_path,
             baseline_json=baseline_json,
             optimized_json=optimized_json,
         )

@@ -32,6 +32,7 @@ def get_embedding_model():
             from sentence_transformers import SentenceTransformer
 
             _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+            _embedding_model.encode("warmup", show_progress_bar=False)
             logger.info("Embedding model loaded: all-MiniLM-L6-v2")
         except ImportError:
             logger.warning(
@@ -82,8 +83,8 @@ def compute_embedding_distance(str1, str2):
     if model is None:
         return compute_levenshtein_distance(str1, str2)
     try:
-        emb1 = model.encode(str(str1), convert_to_numpy=True)
-        emb2 = model.encode(str(str2), convert_to_numpy=True)
+        emb1 = model.encode(str(str1), convert_to_numpy=True, show_progress_bar=False)
+        emb2 = model.encode(str(str2), convert_to_numpy=True, show_progress_bar=False)
         return min(float(cosine(emb1, emb2)), 1.0)
     except Exception as e:
         logger.warning(f"Embedding computation failed: {e}. Falling back to Levenshtein.")

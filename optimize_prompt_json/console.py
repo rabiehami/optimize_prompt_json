@@ -69,8 +69,8 @@ def print_final_results(
     final_metrics,
     step_0_score,
     final_score,
-    optimized_prompt,
-    output_path,
+    baseline_prompt=None,
+    optimized_prompt=None,
     baseline_json=None,
     optimized_json=None,
 ):
@@ -146,6 +146,18 @@ def print_final_results(
         _print_json_preview(optimized_json)
         print()
 
+    # Baseline prompt
+    print("=" * 64)
+    print("  BASELINE EXTRACTION PROMPT")
+    print("=" * 64)
+    print()
+    if baseline_prompt:
+        for line in baseline_prompt.splitlines():
+            print(f"  {line}")
+    else:
+        print("  (No baseline prompt)")
+    print()
+
     # Optimized prompt
     print("=" * 64)
     print("  OPTIMIZED EXTRACTION PROMPT")
@@ -157,10 +169,6 @@ def print_final_results(
     else:
         print("  (No prompt refinement produced — baseline prompt was best)")
     print()
-
-    # Save location
-    if output_path:
-        print(f"  Prompt saved to: {output_path}")
     print("=" * 64)
     print()
 
