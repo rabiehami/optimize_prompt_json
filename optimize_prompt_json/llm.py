@@ -95,7 +95,7 @@ async def ask_model(rate_limit_delay=0.0, **kwargs):
         "price": _safe_completion_cost(response, llm_model),
     }
     for k, v in kwargs.items():
-        if k not in ("prompt_type", "prompt"):
+        if k not in ("prompt_type", "prompt", "api_key"):
             full_response[k] = v
 
     logger.info(
