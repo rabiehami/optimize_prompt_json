@@ -13,7 +13,6 @@ from optimize_prompt_json import (
     PROMPT_TYPE_JSON_EXTRACTION,
     PROMPT_TYPE_JSON_GENERATION,
 )
-from optimize_prompt_json.config import API_MODELS
 from optimize_prompt_json.database import LLMResponse, get_session
 from optimize_prompt_json.json_utils import extract_json_from_response
 
@@ -42,7 +41,7 @@ async def ask_model(rate_limit_delay=0.0, **kwargs):
     INITIAL_BACKOFF = 1.0
 
     llm_model = kwargs.get("llm_model", "")
-    api_key = API_MODELS.get(llm_model, {}).get("api_key", "")
+    api_key = kwargs.get("api_key", "")
 
     if rate_limit_delay > 0:
         await asyncio.sleep(rate_limit_delay)

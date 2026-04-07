@@ -36,6 +36,7 @@ import asyncio
 config = OptimizationConfig(
     schema={"type": "object", "properties": {"foo": {"type": "string"}}},
     text="Sample text to extract from.",
+    api_key="your_api_key_here",
     llm_model="groq/llama-3.1-8b-instant",
 )
 result = asyncio.run(run_optimization(config))
@@ -50,6 +51,7 @@ All parameters are passed via `OptimizationConfig`:
 |------------------------|----------------------------------|------------------------------------------|
 | `schema`               | *(required)*                     | JSON schema as a dict                    |
 | `text`                 | *(required)*                     | Text to extract JSON from                |
+| `api_key`              | `""`                             | API key for your LLM provider            |
 | `llm_model`            | `groq/llama-3.1-8b-instant`     | LLM for JSON generation and extraction   |
 | `llm_text_gen_model`   | same as `llm_model`             | LLM for synthetic text generation        |
 | `llm_optimizer_model`  | same as `llm_model`             | LLM for prompt refinement                |
