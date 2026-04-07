@@ -4,33 +4,46 @@ import json
 import logging
 import re
 
-from optimize_prompt_json.config import BLACKLIST_FIELDS
+
 
 logger = logging.getLogger(__name__)
 
 
-def is_field_blacklisted(field_name):
+DEFAULT_BLACKLIST_FIELDS = {
+    "id",
+    "uuid",
+    "_id",
+    "object_id",
+    "timestamp",
+    "created_at",
+    "updated_at",
+}
+
+
+def is_field_blacklisted(field_name, blacklist_fields=None):
     """Check if a field name is in the blacklist (case-insensitive)."""
-    return field_name.lower() in {f.lower() for f in BLACKLIST_FIELDS}
+    if blacklist_fields is None:
+        blacklist_fields = DEFAULT_BLACKLIST_FIELDS
+    return field_name.lower() in {f.lower() for f in blacklist_fields}
 
 
-def remove_blacklisted_fields(obj):
+def remove_blacklisted_fields(obj, blacklist_fields=None):
     """Recursively remove blacklisted fields from a JSON object."""
     if isinstance(obj, dict):
         return {
-            k: remove_blacklisted_fields(v)
+            k: remove_blacklisted_fields(v, blacklist_fields)
             for k, v in obj.items()
-            if not is_field_blacklisted(k)
+            if not is_field_blacklisted(k, blacklist_fields)
         }
     elif isinstance(obj, list):
-        return [remove_blacklisted_fields(item) for item in obj]
+        return [remove_blacklisted_fields(item, blacklist_fields) for item in obj]
     return obj
 
 
 def build_exclude_paths_from_blacklist(obj, field_blacklist=None, prefix=""):
     """Build DeepDiff-compatible exclude paths from blacklisted field names."""
     if field_blacklist is None:
-        field_blacklist = {f.lower() for f in BLACKLIST_FIELDS}
+        field_blacklist = {f.lower() for f in DEFAULT_BLACKLIST_FIELDS}
     if not field_blacklist:
         return []
     exclude_paths = []

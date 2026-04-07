@@ -4,13 +4,18 @@ import json
 import logging
 import re
 
-from optimize_prompt_json.config import MAX_TOKENS
+
 
 logger = logging.getLogger(__name__)
 
 
-def create_prompts_for_rand_json(json_schema, batch_size=1):
+DEFAULT_MAX_TOKENS = 1000
+
+
+def create_prompts_for_rand_json(json_schema, batch_size=1, max_tokens=None):
     """Generate prompts that instruct an LLM to create random JSON examples from a schema."""
+    if max_tokens is None:
+        max_tokens = DEFAULT_MAX_TOKENS
     meta_prompt = (
         "Please create a random, realistic JSON example based on the schema below. "
         "Be creative and original — invent a plausible, varied scenario. "
@@ -27,13 +32,15 @@ def create_prompts_for_rand_json(json_schema, batch_size=1):
         "Here the schema: {json_schema}"
     )
     return [
-        meta_prompt.format(max_token=MAX_TOKENS, json_schema=json.dumps(json_schema))
+        meta_prompt.format(max_token=max_tokens, json_schema=json.dumps(json_schema))
         for _ in range(batch_size)
     ]
 
 
-def create_prompts_for_article_generation(json_data_list, reference_text=None):
+def create_prompts_for_article_generation(json_data_list, reference_text=None, max_tokens=None):
     """Generate prompts that convert JSON data into natural-language text."""
+    if max_tokens is None:
+        max_tokens = DEFAULT_MAX_TOKENS
     base_prompt = (
         "Please write a text that is based on the json data below. "
         "CRITICAL REQUIREMENT: Every single value from the JSON must appear in your text — including all "
@@ -59,7 +66,7 @@ def create_prompts_for_article_generation(json_data_list, reference_text=None):
     for json_data in json_data_list:
         prompts.append(
             meta_prompt.format(
-                max_token=MAX_TOKENS,
+                max_token=max_tokens,
                 reference_text=reference_text or "",
                 json_data=json.dumps(json_data),
             )

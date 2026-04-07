@@ -84,6 +84,16 @@ class OptimizationConfig:
     db_url: str = "sqlite:///optimize_prompt_json.db"
     log_dir: str = "logs"
     quiet: bool = False
+    max_tokens: int = 1000
+    blacklist_fields: set = field(default_factory=lambda: {
+        "id",
+        "uuid",
+        "_id",
+        "object_id",
+        "timestamp",
+        "created_at",
+        "updated_at",
+    })
 
 
 # =====================================================================
@@ -180,7 +190,7 @@ def _get_field_distance_breakdown_for_refinement(run_id, step_id, schema):
     return dict(sorted(result.items(), key=lambda x: x[1].get("distance", 0), reverse=True))
 
 
-def _get_step_diffs(run_id, step_id, schema):
+def _get_step_diffs(run_id, step_id, schema, blacklist_fields=None):
     """Calculate DeepDiff between original and extracted JSON per artifact."""
 
     def _lower_json(obj):
@@ -209,7 +219,10 @@ def _get_step_diffs(run_id, step_id, schema):
         try:
             original = json.loads(row.json_orig)
             extracted = json.loads(row.json_extr)
-            exclude_paths = build_exclude_paths_from_blacklist(_lower_json(original))
+            exclude_paths = build_exclude_paths_from_blacklist(
+                _lower_json(original),
+                field_blacklist={f.lower() for f in blacklist_fields} if blacklist_fields else None,
+            )
             diff = DeepDiff(
                 _lower_json(original), _lower_json(extracted),
                 ignore_order=True, exclude_paths=exclude_paths,
@@ -417,7 +430,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
 
     # --- Phase 1: Random JSON generation ---
     rand_group_id = str(uuid4())
-    rand_prompts = create_prompts_for_rand_json(schema, config.batch_size)
+    rand_prompts = create_prompts_for_rand_json(schema, config.batch_size, max_tokens=config.max_tokens)
     rand_meta = [
         dict(
             run_id=run_id,
@@ -471,7 +484,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
     text_gen_model = config.llm_text_gen_model or config.llm_model
     synth_group_id = str(uuid4())
     synth_prompts = create_prompts_for_article_generation(
-        [r["content"] for r in rand], reference_text=config.text
+        [r["content"] for r in rand], reference_text=config.text, max_tokens=config.max_tokens
     )
     synth_meta = [
         dict(
@@ -546,7 +559,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
     # --- Phase 6: Refine prompt ---
     if config.optimize:
         fdb = _get_field_distance_breakdown_for_refinement(run_id, step_id, schema)
-        diffs_list = _get_step_diffs(run_id, step_id, schema)
+        diffs_list = _get_step_diffs(run_id, step_id, schema, blacklist_fields=config.blacklist_fields)
         diffs_for_feedback = [d["diff"] for d in diffs_list if d.get("diff")]
 
         current_lessons = generate_lessons_learned(fdb, schema=schema)
