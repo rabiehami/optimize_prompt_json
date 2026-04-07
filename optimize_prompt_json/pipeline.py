@@ -93,6 +93,14 @@ class OptimizationConfig:
         "created_at",
         "updated_at",
     })
+    initial_prompt: str = (
+        "From the provided text, extract data and output exactly a JSON object that matches the given schema. "
+        "Do not add any extra text or fields. If any field cannot be determined, provide an empty string for that field. "
+        "Field names in the output JSON must exactly match the schema field names, "
+        "preserving camelCase capitalization (for example, use 'dataCollectionPeriod' not 'datacollectionperiod', "
+        "'studyDesign' not 'studydesign', 'outcomeMeasures' not 'outcomemeasures'). "
+        "The JSON must be valid and parseable."
+    )
 
 
 # =====================================================================
@@ -606,11 +614,11 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
 
 async def _extract_from_user_text(config, run_id, prompt_override=None, step_id=-1):
     """Apply an extraction prompt to the user's actual text and return (json_str, prompt_used)."""
+
     schema = config.schema
-    if prompt_override:
-        prompts = extract_json_from_text([config.text], schema, refined_prompt=prompt_override)
-    else:
-        prompts = extract_json_from_text([config.text], schema)
+    # Use prompt_override if provided, else use config.initial_prompt
+    refined_prompt = prompt_override if prompt_override is not None else config.initial_prompt
+    prompts = extract_json_from_text([config.text], schema, refined_prompt=refined_prompt)
 
     if not prompts:
         return None, None

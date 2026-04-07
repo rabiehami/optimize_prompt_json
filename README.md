@@ -38,6 +38,7 @@ pip install -e .
 
 ## Quick start
 
+
 ```python
 from optimize_prompt_json import OptimizationConfig, run_optimization
 import asyncio
@@ -47,6 +48,7 @@ config = OptimizationConfig(
     text="Sample text to extract from.",
     api_key="your_api_key_here",
     llm_model="groq/llama-3.1-8b-instant",
+    initial_prompt="Please extract from the text below the data described in the schema below as a JSON object."
 )
 result = asyncio.run(run_optimization(config))
 print(result["optimized_prompt"])
@@ -82,6 +84,7 @@ All parameters are passed via `OptimizationConfig`:
 | `db_url`               | `sqlite:///optimize_prompt_json.db` | SQLite database for run history      |
 | `log_dir`              | `logs`                          | Directory for log files                  |
 | `quiet`                | `False`                         | Suppress step-by-step console output     |
+| `initial_prompt`       | see below                       | Initial extraction prompt (baseline); if not set, uses the default baseline prompt |
 
 ## Result dictionary
 
