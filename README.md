@@ -15,13 +15,22 @@ Given a JSON schema and a sample text, this tool automatically refines the extra
 
 The output is an **optimized extraction prompt** that you can use with any LLM to extract structured JSON from text matching your schema.
 
+
 ## Installation
+
+The easiest way to install the latest version directly from GitHub:
+
+```bash
+pip install --upgrade git+https://github.com/rabiehami/optimize_prompt_json.git
+```
+
+Or, to install from a local copy (after downloading or cloning the repository):
 
 ```bash
 pip install .
 ```
 
-Or for development:
+For development (editable install):
 
 ```bash
 pip install -e .
