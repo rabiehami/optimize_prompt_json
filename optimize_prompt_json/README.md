@@ -60,6 +60,12 @@ The tool produces:
 - **`optimize_prompt_json.db`**: SQLite database with full run history and metrics
 - **`logs/`**: Detailed log files for debugging
 
+## Supported LLM providers
+
+Any model supported by [litellm](https://docs.litellm.ai/docs/providers) works.
+
+**Recommended:** Groq models (e.g., `groq/llama-3.1-8b-instant`) are a good choice due to their high rate limits and performance.
+
 ## License
 
 MIT
