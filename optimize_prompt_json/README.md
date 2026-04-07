@@ -28,25 +28,23 @@ pip install -e .
 ```
 
 
+
 ## Quick start
 
-1. Copy `.env.example` to `.env` and add your API key(s):
-  ```
-  GROQ_API_KEY=your_key_here
-  ```
+Use the library in your Python code:
 
-2. Use the library in your Python code:
-  ```python
-  from optimize_prompt_json import OptimizationConfig, run_optimization
-  import asyncio
+```python
+from optimize_prompt_json import OptimizationConfig, run_optimization
+import asyncio
 
-  config = OptimizationConfig(
-     schema={"type": "object", "properties": {"foo": {"type": "string"}}},
-     text="Sample text to extract from."
-  )
-  result = asyncio.run(run_optimization(config))
-  print(result["optimized_prompt"])
-  ```
+config = OptimizationConfig(
+    schema={"type": "object", "properties": {"foo": {"type": "string"}}},
+    text="Sample text to extract from.",
+    api_key="your_groq_api_key_here"  # Pass your API key directly
+)
+result = asyncio.run(run_optimization(config))
+print(result["optimized_prompt"])
+```
 
 The optimized prompt is available in the result dictionary.
 
