@@ -104,7 +104,6 @@ Any model supported by [litellm](https://docs.litellm.ai/docs/providers) works.
 The library produces:
 
 - **Console output**: Step-by-step progress and quality comparison (unless `quiet=True`)
-- **`optimized_prompt.txt`**: The refined extraction prompt ready for production use
 - **`optimize_prompt_json.db`**: SQLite database with full run history and metrics
 - **`logs/`**: Detailed log files for debugging
 
