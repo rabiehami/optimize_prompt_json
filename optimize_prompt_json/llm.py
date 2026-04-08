@@ -98,10 +98,7 @@ async def ask_model(rate_limit_delay=0.0, **kwargs):
         if k not in ("prompt_type", "prompt", "api_key"):
             full_response[k] = v
 
-    logger.info(
-        f"LLM response: model={llm_model} type={kwargs.get('prompt_type')} "
-        f"tokens={response.usage.total_tokens}"
-    )
+    logger.info(f"ask_model: {full_response}")
     return full_response
 
 

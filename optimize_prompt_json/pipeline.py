@@ -1,3 +1,14 @@
+
+# Suppress Hugging Face Hub warnings and progress bars
+import os
+os.environ["TRANSFORMERS_NO_TQDM"] = "1"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+
+import logging
+logging.getLogger("huggingface_hub").setLevel(logging.ERROR)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
+
 """Main optimization pipeline for JSON extraction prompt refinement."""
 
 import asyncio
