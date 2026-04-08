@@ -6,6 +6,10 @@ Given a JSON schema and a sample text, this tool automatically refines the extra
 
 ## How it works
 
+<p align="center">
+  <img src="optimize_prompt_json/figures/overview.png" alt="Overview of the optimization algorithm. The pipeline flowchart (left) traces the data flow; colour coding distinguishes generation (blue), evaluation (orange), and prompt refinement (purple). The dashed box is the iterative optimization loop. The convergence panel (right) shows the expected prompt optimization trajectory from the baseline prompt to the optimized prompt." width="700">
+</p>
+
 1. **Generate** random JSON instances from your schema
 2. **Transform** each JSON into natural-language text (using your sample as a style reference)
 3. **Extract** JSON back from the synthetic text using the current prompt
