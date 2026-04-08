@@ -72,7 +72,6 @@ All parameters are passed via `OptimizationConfig`:
 | `rollback_threshold`   | `0.01`                          | Score drop that triggers rollback        |
 | `rate_limit_delay`     | `0.0`                           | Delay between API requests (seconds)     |
 | `optimize`             | `True`                          | Set to `False` to run baseline only      |
-| `output_path`          | `optimized_prompt.txt`          | Output file for optimized prompt         |
 | `db_url`               | `sqlite:///optimize_prompt_json.db` | SQLite database for run history      |
 | `log_dir`              | `logs`                          | Directory for log files                  |
 | `quiet`                | `False`                         | Suppress step-by-step console output     |
