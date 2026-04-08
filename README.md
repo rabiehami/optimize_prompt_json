@@ -2,7 +2,7 @@
 
 Iterative LLM prompt optimization for JSON extraction from text.
 
-Given a JSON schema and a sample text, this tool automatically refines the extraction prompt through iterative optimization — generating synthetic training data, evaluating extraction quality, and improving the prompt step by step.
+Given a JSON schema and a sample text, this tool automatically refines the extraction prompt through iterative optimization generating synthetic training data, evaluating extraction quality, and improving the prompt step by step.
 
 ## How it works
 
@@ -22,18 +22,6 @@ The easiest way to install the latest version directly from GitHub:
 
 ```bash
 pip install --upgrade git+https://github.com/rabiehami/optimize_prompt_json.git
-```
-
-Or, to install from a local copy (after downloading or cloning the repository):
-
-```bash
-pip install .
-```
-
-For development (editable install):
-
-```bash
-pip install -e .
 ```
 
 ## Quick start
