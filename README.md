@@ -2,7 +2,7 @@
 
 Iterative LLM prompt optimization for JSON extraction from text.
 
-Given a JSON schema and a sample text, this tool automatically refines the extraction prompt through iterative optimization generating synthetic training data, evaluating extraction quality, and improving the prompt step by step.
+Given a JSON schema and a sample text, this tool automatically refines the extraction prompt through iterative optimization, evaluating extraction quality with synthetically generarated training data, and improving the prompt by learning from the previous steps.
 
 ## How it works
 
