@@ -36,6 +36,7 @@ from optimize_prompt_json import OptimizationConfig, run_optimization
 import asyncio
 
 config = OptimizationConfig(
+    initial_prompt="Please extract from the text below the data described in the schema below as a JSON object."
     text="The weather in Paris is nice tomorrow. It will have 5 degrees.",
     schema={"type": "object", "properties": {"city": {"type": "string"}, "temperature": {"type": "number"}}},
     api_key="your_api_key_here",
