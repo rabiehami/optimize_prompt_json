@@ -37,14 +37,7 @@ import asyncio
 
 config = OptimizationConfig(
     text="The weather in Paris is nice tomorrow. It will have 5 degrees.",
-    schema={
-        "type": "object",
-        "properties": {
-            "city": {"type": "string"},
-            "date": {"type": "string"},
-            "temperature": {"type": "number"},
-        },
-    },
+    schema={"type": "object", "properties": {"city": {"type": "string"}, "temperature": {"type": "number"}}},
     api_key="your_api_key_here",
     llm_model="groq/llama-3.1-8b-instant",
 )
