@@ -94,12 +94,7 @@ def extract_json_from_text(
 
     if refined_prompt is None or not isinstance(refined_prompt, str):
         refined_prompt = (
-            "From the provided text, extract data and output exactly a JSON object that matches the given schema. "
-            "Do not add any extra text or fields. If any field cannot be determined, provide an empty string for that field. "
-            "Field names in the output JSON must exactly match the schema field names, "
-            "preserving camelCase capitalization (for example, use 'dataCollectionPeriod' not 'datacollectionperiod', "
-            "'studyDesign' not 'studydesign', 'outcomeMeasures' not 'outcomemeasures'). "
-            "The JSON must be valid and parseable."
+            "Please extract from the text below the data described in the schema below as a JSON object."
         )
     else:
         if "Text to extract from:" in refined_prompt:
