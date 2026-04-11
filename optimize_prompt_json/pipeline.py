@@ -91,7 +91,8 @@ class OptimizationConfig:
     api_key_text_gen: str = ""
     api_key_optimizer: str = ""
     optimize: bool = True
-    db_url: str = "sqlite:///optimize_prompt_json.db"
+    db_url: str | None = None
+    log_to_file: bool = True
     log_dir: str = "logs"
     quiet: bool = False
     max_tokens: int = 1000
@@ -105,12 +106,7 @@ class OptimizationConfig:
         "updated_at",
     })
     initial_prompt: str = (
-        "From the provided text, extract data and output exactly a JSON object that matches the given schema. "
-        "Do not add any extra text or fields. If any field cannot be determined, provide an empty string for that field. "
-        "Field names in the output JSON must exactly match the schema field names, "
-        "preserving camelCase capitalization (for example, use 'dataCollectionPeriod' not 'datacollectionperiod', "
-        "'studyDesign' not 'studydesign', 'outcomeMeasures' not 'outcomemeasures'). "
-        "The JSON must be valid and parseable."
+        "Please extract from the text below the data described in the schema below as a JSON object."
     )
 
 
@@ -526,6 +522,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
     if extract_prompt_template is None:
         extract_prompts = extract_json_from_text(
             [r["content"] for r in synth], schema,
+            refined_prompt=config.initial_prompt,
             accumulated_lessons=accumulated_lessons,
         )
         extract_prompt_template = extract_prompts[0] if extract_prompts else ""
@@ -672,8 +669,9 @@ async def run_optimization(config: OptimizationConfig):
     """Run the full optimization pipeline and return the optimized prompt."""
     start_time = time.time()
 
-    # Initialize database
-    init_db(config.db_url)
+    # Initialize database (None -> in-memory SQLite, no file written)
+    db_url = config.db_url if config.db_url is not None else "sqlite:///:memory:"
+    init_db(db_url)
 
     run_id = str(uuid4())
     run_created = datetime.now()
@@ -681,14 +679,15 @@ async def run_optimization(config: OptimizationConfig):
     short_id = run_id[:8]
 
     # Setup logging
-    os.makedirs(config.log_dir, exist_ok=True)
-    log_file = os.path.join(config.log_dir, f"run_{date_str}_{short_id}.log")
-    logging.basicConfig(
-        filename=log_file,
-        filemode="a",
-        format="%(asctime)s - %(levelname)s - %(funcName)s: %(message)s",
-        level=logging.INFO,
-    )
+    if config.log_to_file:
+        os.makedirs(config.log_dir, exist_ok=True)
+        log_file = os.path.join(config.log_dir, f"run_{date_str}_{short_id}.log")
+        logging.basicConfig(
+            filename=log_file,
+            filemode="a",
+            format="%(asctime)s - %(levelname)s - %(funcName)s: %(message)s",
+            level=logging.INFO,
+        )
 
     # Print header
     if not config.quiet:

@@ -92,11 +92,7 @@ def extract_json_from_text(
         "Schema (for reference):\n{json_schema}{mistakes_section}"
     )
 
-    if refined_prompt is None or not isinstance(refined_prompt, str):
-        refined_prompt = (
-            "Please extract from the text below the data described in the schema below as a JSON object."
-        )
-    else:
+    if isinstance(refined_prompt, str):
         if "Text to extract from:" in refined_prompt:
             refined_prompt = refined_prompt.split("Text to extract from:")[0].strip()
         if "\nNotes:\n" in refined_prompt:
