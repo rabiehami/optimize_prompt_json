@@ -73,8 +73,7 @@ All parameters are passed via `OptimizationConfig`:
 | `rate_limit_delay`     | `0.0`                           | Delay between API requests (seconds)     |
 | `optimize`             | `True`                          | Set to `False` to run baseline only      |
 | `db_url`               | `None`                          | SQLite URL for run persistence (e.g. `sqlite:///runs.db`); `None` uses in-memory storage (no file written) |
-| `log_to_file`          | `True`                          | Write a log file to `log_dir`; set to `False` to disable file logging entirely |
-| `log_dir`              | `logs`                          | Directory for log files (used only when `log_to_file=True`) |
+| `log_dir`              | `"logs"`                        | Directory for log files; set to `None` to disable file logging entirely |
 | `quiet`                | `False`                         | Suppress step-by-step console output     |
 | `initial_prompt`       | see below                       | Initial extraction prompt (baseline); if not set, uses the default baseline prompt |
 
@@ -106,7 +105,7 @@ The library produces:
 
 - **Console output**: Step-by-step progress and quality comparison (unless `quiet=True`)
 - **SQLite database**: Full run history and metrics. By default, stored in memory only (no file written). Set `db_url` to a file path (e.g. `sqlite:///runs.db`) to persist results across runs.
-- **`logs/`**: Detailed log files for debugging (written when `log_to_file=True`, which is the default)
+- **`logs/`**: Detailed log files for debugging (set `log_dir=None` to disable)
 
 ## License
 

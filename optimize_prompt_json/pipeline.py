@@ -92,8 +92,7 @@ class OptimizationConfig:
     api_key_optimizer: str = ""
     optimize: bool = True
     db_url: str | None = None
-    log_to_file: bool = True
-    log_dir: str = "logs"
+    log_dir: str | None = "logs"
     quiet: bool = False
     max_tokens: int = 1000
     blacklist_fields: set = field(default_factory=lambda: {
@@ -679,7 +678,7 @@ async def run_optimization(config: OptimizationConfig):
     short_id = run_id[:8]
 
     # Setup logging
-    if config.log_to_file:
+    if config.log_dir is not None:
         os.makedirs(config.log_dir, exist_ok=True)
         log_file = os.path.join(config.log_dir, f"run_{date_str}_{short_id}.log")
         logging.basicConfig(
