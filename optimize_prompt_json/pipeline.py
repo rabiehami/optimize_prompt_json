@@ -92,7 +92,7 @@ class OptimizationConfig:
     api_key_optimizer: str = ""
     optimize: bool = True
     db_url: str | None = None
-    log_dir: str | None = "logs"
+    log_dir: str | None = None
     quiet: bool = False
     max_tokens: int = 1000
     blacklist_fields: set = field(default_factory=lambda: {

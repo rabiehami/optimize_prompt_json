@@ -73,7 +73,7 @@ All parameters are passed via `OptimizationConfig`:
 | `rate_limit_delay`     | `0.0`                           | Delay between API requests (seconds)     |
 | `optimize`             | `True`                          | Set to `False` to run baseline only      |
 | `db_url`               | `None`                          | SQLite URL for run persistence (e.g. `sqlite:///runs.db`); `None` uses in-memory storage (no file written) |
-| `log_dir`              | `"logs"`                        | Directory for log files; set to `None` to disable file logging entirely |
+| `log_dir`              | `None`                          | Directory for log files (e.g. `"logs"`); `None` disables file logging |
 | `quiet`                | `False`                         | Suppress step-by-step console output     |
 | `initial_prompt`       | see below                       | Initial extraction prompt (baseline); if not set, uses the default baseline prompt |
 
