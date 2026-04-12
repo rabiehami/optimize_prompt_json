@@ -1,5 +1,6 @@
 """Console output formatting for optimization progress and results."""
 
+import math
 import os
 
 
@@ -85,7 +86,8 @@ def print_final_results(
     stop_reason = "early stopping" if num_steps < max_steps else "max steps"
     print(f"  Steps completed:  {num_steps} / {max_steps} ({stop_reason})")
     print(f"  Runtime:          {runtime_seconds:.1f}s")
-    print(f"  Total cost:       ${total_cost:.6f}")
+    cost_str = "N/A (pricing unavailable for model)" if math.isnan(total_cost) else f"${total_cost:.6f}"
+    print(f"  Total cost:       {cost_str}")
     print(f"  Total tokens:     {total_tokens:,} (prompt: {prompt_tokens:,} / completion: {completion_tokens:,})")
     print()
 

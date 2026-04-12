@@ -28,11 +28,11 @@ _JSON_PROMPT_TYPES = {
 
 
 def _safe_completion_cost(response, model):
-    """Return litellm completion cost, or 0.0 on failure."""
+    """Return litellm completion cost, or NaN if pricing is unavailable."""
     try:
         return litellm.completion_cost(response, model=model)
     except Exception:
-        return 0.0
+        return float("nan")
 
 
 async def ask_model(rate_limit_delay=0.0, **kwargs):

@@ -14,6 +14,7 @@ logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
 import asyncio
 import json
 import logging
+import math
 import os
 import re
 import time
@@ -811,6 +812,8 @@ async def run_optimization(config: OptimizationConfig):
     total_prompt_tokens = int(df_responses["prompt_tokens"].sum()) if not df_responses.empty else 0
     total_completion_tokens = int(df_responses["completion_tokens"].sum()) if not df_responses.empty else 0
     total_price = float(df_responses["price"].sum()) if not df_responses.empty else 0.0
+    if not df_responses.empty and df_responses["price"].isna().any():
+        total_price = float("nan")
     total_runtime = time.time() - start_time
 
     # Update run record
@@ -850,7 +853,8 @@ async def run_optimization(config: OptimizationConfig):
             optimized_json=optimized_json,
         )
 
-    logger.info(f"Done. Run ID: {run_id}, Steps: {num_steps}, Cost: ${total_price:.6f}")
+    cost_str = "N/A" if math.isnan(total_price) else f"${total_price:.6f}"
+    logger.info(f"Done. Run ID: {run_id}, Steps: {num_steps}, Cost: {cost_str}")
 
     return {
         "run_id": run_id,
