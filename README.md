@@ -71,7 +71,7 @@ All parameters are passed via `OptimizationConfig`:
 | `schema_valid_target`  | `0.99`                          | Minimum schema validity rate             |
 | `rollback_threshold`   | `0.01`                          | Score drop that triggers rollback        |
 | `rate_limit_delay`     | `0.0`                           | Delay between API requests (seconds)     |
-| `evaluate_only`        | `False`                         | When `True`, runs a single evaluation step on the baseline prompt (no refinement) and returns the metrics. Overrides `max_steps` to `1`. |
+| `evaluate_only`        | `False`                         | When `True`, runs a single evaluation step on the baseline prompt (no refinement) and returns the metrics. |
 | `db_url`               | `None`                          | SQLite URL for run persistence (e.g. `sqlite:///runs.db`); `None` uses in-memory storage (no file written) |
 | `log_dir`              | `None`                          | Directory for log files (e.g. `"logs"`); `None` disables file logging |
 | `quiet`                | `False`                         | Suppress step-by-step console output     |
