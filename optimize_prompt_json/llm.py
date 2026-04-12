@@ -32,6 +32,17 @@ def _safe_completion_cost(response, model):
     try:
         return litellm.completion_cost(response, model=model)
     except Exception:
+        # Fallback: Groq strips provider prefix from response.model,
+        # causing litellm lookup to fail. Calculate manually.
+        try:
+            cost_info = litellm.model_cost.get(model, {})
+            if cost_info:
+                usage = response.usage
+                input_cost = (usage.prompt_tokens or 0) * cost_info.get("input_cost_per_token", 0)
+                output_cost = (usage.completion_tokens or 0) * cost_info.get("output_cost_per_token", 0)
+                return input_cost + output_cost
+        except Exception:
+            pass
         return float("nan")
 
 

@@ -811,9 +811,10 @@ async def run_optimization(config: OptimizationConfig):
     )
     total_prompt_tokens = int(df_responses["prompt_tokens"].sum()) if not df_responses.empty else 0
     total_completion_tokens = int(df_responses["completion_tokens"].sum()) if not df_responses.empty else 0
-    total_price = float(df_responses["price"].sum()) if not df_responses.empty else 0.0
-    if not df_responses.empty and df_responses["price"].isna().any():
-        total_price = float("nan")
+    if not df_responses.empty:
+        total_price = float(df_responses["price"].fillna(0).sum())
+    else:
+        total_price = 0.0
     total_runtime = time.time() - start_time
 
     # Update run record
