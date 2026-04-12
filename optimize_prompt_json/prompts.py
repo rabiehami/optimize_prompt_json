@@ -77,7 +77,7 @@ def create_prompts_for_article_generation(json_data_list, reference_text=None, m
 def extract_json_from_text(
     texts,
     json_schema,
-    refined_prompt=None,
+    refined_prompt="Please extract from the text below the data described in the schema below as a JSON object.",
     validation_errors=None,
     diffs=None,
     field_distance_breakdown=None,
