@@ -71,7 +71,7 @@ All parameters are passed via `OptimizationConfig`:
 | `schema_valid_target`  | `0.99`                          | Minimum schema validity rate             |
 | `rollback_threshold`   | `0.01`                          | Score drop that triggers rollback        |
 | `rate_limit_delay`     | `0.0`                           | Delay between API requests (seconds)     |
-| `optimize`             | `True`                          | When `True`, the pipeline runs the iterative prompt-refinement loop (generate → evaluate → refine). When `False`, the full pipeline machinery still executes (DB logging, metrics tracking, synthetic data generation), but the prompt-refinement step is skipped — the prompt stays unchanged across all steps. This is useful for benchmarking the baseline prompt through the pipeline. **Note:** this is different from running a standalone baseline extraction outside the pipeline (see [Baseline-only example](#baseline-only-example) below). |
+| `evaluate_only`        | `False`                         | When `True`, runs a single evaluation step on the baseline prompt (no refinement) and returns the metrics. Overrides `max_steps` to `1`. |
 | `db_url`               | `None`                          | SQLite URL for run persistence (e.g. `sqlite:///runs.db`); `None` uses in-memory storage (no file written) |
 | `log_dir`              | `None`                          | Directory for log files (e.g. `"logs"`); `None` disables file logging |
 | `quiet`                | `False`                         | Suppress step-by-step console output     |
@@ -92,31 +92,6 @@ All parameters are passed via `OptimizationConfig`:
 | `optimized_json`    | JSON extracted using the optimized prompt            |
 | `total_cost`        | Total API cost in USD                                |
 | `total_runtime`     | Total runtime in seconds                             |
-
-## Baseline-only example
-
-If you just want to extract JSON from text with the baseline prompt — without any optimization or pipeline overhead — you can call the extraction helpers directly:
-
-```python
-import json
-import litellm
-from optimize_prompt_json.prompts import extract_json_from_text
-
-schema = {"type": "object", "properties": {"city": {"type": "string"}, "temperature": {"type": "number"}}}
-text = "The weather in Paris is nice tomorrow. It will have 5 degrees."
-
-# Build the extraction prompt (uses the default baseline prompt)
-prompts = extract_json_from_text([text], schema)
-
-response = litellm.completion(
-    model="groq/llama-3.1-8b-instant",
-    messages=[{"role": "user", "content": prompts[0]}],
-    api_key="your_api_key_here",
-)
-print(response.choices[0].message.content)
-```
-
-This bypasses the pipeline entirely — no synthetic data generation, no metrics, no DB logging. It is equivalent to what the pipeline does at step 0 before any refinement begins.
 
 ## Supported LLM providers
 

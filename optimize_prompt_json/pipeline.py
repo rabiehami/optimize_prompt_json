@@ -90,7 +90,7 @@ class OptimizationConfig:
     api_key: str = ""
     api_key_text_gen: str = ""
     api_key_optimizer: str = ""
-    optimize: bool = True
+    evaluate_only: bool = False
     db_url: str | None = None
     log_dir: str | None = None
     quiet: bool = False
@@ -571,7 +571,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
     step_metrics = _aggregate_step_metrics(run_id, step_id)
 
     # --- Phase 6: Refine prompt ---
-    if config.optimize:
+    if not config.evaluate_only:
         fdb = _get_field_distance_breakdown_for_refinement(run_id, step_id, schema)
         diffs_list = _get_step_diffs(run_id, step_id, schema, blacklist_fields=config.blacklist_fields)
         diffs_for_feedback = [d["diff"] for d in diffs_list if d.get("diff")]
@@ -719,6 +719,9 @@ async def run_optimization(config: OptimizationConfig):
     logger.info(f"Baseline extraction: {baseline_json}")
 
     # --- Optimization loop ---
+    if config.evaluate_only:
+        config.max_steps = 1
+
     refined_prompt = None
     accumulated_lessons = None
     num_steps = 0
