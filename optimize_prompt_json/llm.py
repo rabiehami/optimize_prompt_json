@@ -111,11 +111,11 @@ async def ask_model(rate_limit_delay=0.0, **kwargs):
             full_response[k] = v
 
     if full_response["finish_reason"] == "length":
-        logger.warning(
-            "Output truncated (finish_reason='length') for prompt_type='%s' "
-            "with completion_tokens=%s — the provider's max output token limit was hit.",
-            full_response["prompt_type"],
-            full_response["completion_tokens"],
+        raise RuntimeError(
+            f"Output truncated (finish_reason='length') for prompt_type="
+            f"'{full_response['prompt_type']}' with completion_tokens="
+            f"{full_response['completion_tokens']}. The provider's max output "
+            f"token limit was hit. Use a model with a higher output token limit."
         )
 
     logger.info(f"ask_model: {full_response}")
