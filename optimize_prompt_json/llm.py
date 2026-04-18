@@ -98,6 +98,7 @@ async def ask_model(rate_limit_delay=0.0, **kwargs):
         "prompt_type": kwargs.get("prompt_type"),
         "prompt": kwargs.get("prompt"),
         "content": response.choices[0].message.content,
+        "finish_reason": response.choices[0].finish_reason,
         "completion_tokens": response.usage.completion_tokens,
         "prompt_tokens": response.usage.prompt_tokens,
         "total_tokens": response.usage.total_tokens,
@@ -108,6 +109,14 @@ async def ask_model(rate_limit_delay=0.0, **kwargs):
     for k, v in kwargs.items():
         if k not in ("prompt_type", "prompt", "api_key"):
             full_response[k] = v
+
+    if full_response["finish_reason"] == "length":
+        logger.warning(
+            "Output truncated (finish_reason='length') for prompt_type='%s' "
+            "with completion_tokens=%s — the provider's max output token limit was hit.",
+            full_response["prompt_type"],
+            full_response["completion_tokens"],
+        )
 
     logger.info(f"ask_model: {full_response}")
     return full_response
