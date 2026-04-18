@@ -102,18 +102,43 @@ def compute_weighted_value_similarity(original, extracted, schema):
     flat_extr = flatten_json(extracted)
     field_distances = []
 
-    for path, orig_value in flat_orig:
-        path_lower = path.lower()
+    # Pattern to detect the first array index in a flattened path
+    array_pat = re.compile(r"^(.*?)\[(\d+)\](.*)")
+
+    # ---- Separate non-array and array paths from original ----
+    orig_non_array = []
+    orig_array_groups = {}  # {array_path: {index: [(sub_path, value)]}}
+
+    for path, value in flat_orig:
         field_name = path.split("[")[-1].strip("']\"") if "[" in path else path
         if is_field_blacklisted(field_name):
             continue
+        m = array_pat.match(path)
+        if m:
+            arr_path, arr_idx, sub_path = m.group(1), int(m.group(2)), m.group(3)
+            orig_array_groups.setdefault(arr_path, {}).setdefault(arr_idx, []).append(
+                (sub_path, value)
+            )
+        else:
+            orig_non_array.append((path, value))
 
-        extr_value = None
-        for extr_path, extr_val in flat_extr:
-            if extr_path.lower() == path_lower:
-                extr_value = extr_val
-                break
+    # ---- Build extracted lookup structures ----
+    extr_non_array_map = {}
+    extr_array_groups = {}
 
+    for path, value in flat_extr:
+        m = array_pat.match(path)
+        if m:
+            arr_path, arr_idx, sub_path = m.group(1), int(m.group(2)), m.group(3)
+            extr_array_groups.setdefault(arr_path, {}).setdefault(arr_idx, []).append(
+                (sub_path, value)
+            )
+        else:
+            extr_non_array_map[path.lower()] = value
+
+    # ---- Non-array fields (unchanged logic) ----
+    for path, orig_value in orig_non_array:
+        extr_value = extr_non_array_map.get(path.lower())
         if extr_value is None:
             field_distances.append(1.0)
             continue
@@ -128,6 +153,71 @@ def compute_weighted_value_similarity(original, extracted, schema):
         else:
             distance = compute_levenshtein_distance(orig_value, extr_value)
         field_distances.append(distance)
+
+    # ---- Array fields with order-independent greedy best-match ----
+    def _field_distance(orig_value, extr_value, sub_path, arr_path):
+        full_path = f"{arr_path}[0]{sub_path}"
+        field_type = get_field_type_from_schema(full_path, schema)
+        if field_type in ("number", "integer"):
+            return compute_numeric_distance(orig_value, extr_value)
+        if field_type in ("boolean", "enum"):
+            return 0.0 if orig_value.lower() == extr_value.lower() else 1.0
+        if is_long_form_text(orig_value):
+            return compute_embedding_distance(orig_value, extr_value)
+        return compute_levenshtein_distance(orig_value, extr_value)
+
+    def _element_distance(orig_fields, extr_fields, arr_path):
+        orig_dict = dict(orig_fields)
+        extr_dict = dict(extr_fields)
+        all_subs = set(orig_dict.keys()) | set(extr_dict.keys())
+        if not all_subs:
+            return 1.0
+        total = sum(
+            1.0
+            if sp not in orig_dict or sp not in extr_dict
+            else _field_distance(orig_dict[sp], extr_dict[sp], sp, arr_path)
+            for sp in all_subs
+        )
+        return total / len(all_subs)
+
+    for arr_path, orig_elements in orig_array_groups.items():
+        extr_elements = extr_array_groups.get(arr_path, {})
+
+        if not extr_elements:
+            for fields in orig_elements.values():
+                field_distances.extend([1.0] * len(fields))
+            continue
+
+        orig_indices = sorted(orig_elements.keys())
+        extr_indices = sorted(extr_elements.keys())
+
+        # Greedy best-match (same strategy as compute_array_optimal_matching):
+        # for each original element, pick the closest extracted element.
+        matching = {}
+        for oi in orig_indices:
+            best_ei, best_dist = None, float("inf")
+            for ei in extr_indices:
+                d = _element_distance(orig_elements[oi], extr_elements[ei], arr_path)
+                if d < best_dist:
+                    best_dist = d
+                    best_ei = ei
+            if best_ei is not None:
+                matching[oi] = best_ei
+
+        # Compute per-field distances using aligned pairs
+        for oi in orig_indices:
+            if oi in matching:
+                extr_dict = dict(extr_elements[matching[oi]])
+                for sub_path, orig_value in orig_elements[oi]:
+                    extr_value = extr_dict.get(sub_path)
+                    if extr_value is None:
+                        field_distances.append(1.0)
+                    else:
+                        field_distances.append(
+                            _field_distance(orig_value, extr_value, sub_path, arr_path)
+                        )
+            else:
+                field_distances.extend([1.0] * len(orig_elements[oi]))
 
     if not field_distances:
         return 1.0
