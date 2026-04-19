@@ -42,15 +42,17 @@ def create_prompts_for_article_generation(json_data_list, reference_text=None, m
     if max_tokens is None:
         max_tokens = DEFAULT_MAX_TOKENS
     base_prompt = (
-        "Please write a text that is based on the json data below. "
-        "CRITICAL REQUIREMENT: Every single value from the JSON must appear in your text — including all "
-        "numeric codes, zip codes, postal codes, dates, identifiers, and any other structured or coded values. "
-        "These must be reproduced EXACTLY and VERBATIM as they appear in the JSON (e.g. if the JSON has "
-        '"zip": "94105", the text must contain the string \'94105\' literally). '
-        "Do NOT paraphrase, omit, or approximate any such values. "
-        "The data can be embedded in natural human-language phrasing, but the values themselves must not be altered. "
+        "Please write a realistic, natural-sounding text based on the JSON data below. "
+        "Every value from the JSON must be conveyed in the text, but how literally it appears "
+        "depends on the value type:\n"
+        "  - Identifiers, codes, and reference numbers: reproduce VERBATIM.\n"
+        "  - Dates and times: express in any natural written format.\n"
+        "  - Booleans: convey as natural language rather than literal true/false.\n"
+        "  - Null or missing values: express as absence or unknown in natural phrasing.\n"
+        "  - Enum-like categorical values: use natural casing and phrasing.\n"
+        "  - Numbers and quantities: may use natural formatting such as grouping separators or unit words.\n"
         "You can add side information unrelated to the schema. "
-        "The text should sound like a normal/typical text and should be unstructured. "
+        "The text should sound like a normal, unstructured, human-written document — not a form or a list. "
         "Please output solely the article without explanations etc. of what you did. Do NOT use markdown or code blocks. "
         "Please do not exceed {max_token} tokens with your answer."
     )

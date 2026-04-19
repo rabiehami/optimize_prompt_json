@@ -1,6 +1,6 @@
 """Iterative LLM prompt optimization for JSON extraction from text."""
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 # Prompt type constants (used across modules)
 PROMPT_TYPE_JSON_GENERATION = "json_generation"

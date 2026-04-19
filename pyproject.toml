@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "optimize-prompt-json"
-version = "0.1.0"
+version = "0.1.1"
 description = "Iterative LLM prompt optimization for JSON extraction from text"
 readme = "README.md"
 requires-python = ">=3.10"
