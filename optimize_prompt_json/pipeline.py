@@ -360,9 +360,20 @@ def _collect_validation_errors(run_id, step_id, schema):
 
 async def _refine_extraction_prompt(
     run_id, step_id, prev_prompt, json_schema, lessons_section, config,
+    validation_errors=None,
 ):
     """Ask the LLM to refine the extraction prompt."""
     llm_model = config.llm_optimizer_model or config.llm_model
+
+    validation_section = ""
+    if validation_errors:
+        error_lines = "\n".join(f"  - {e}" for e in validation_errors)
+        validation_section = (
+            f"\n\nSchema Validation Errors from this step (the extracted JSON failed these checks):\n"
+            f"{error_lines}\n"
+            f"Your refined prompt MUST address these errors so the extractor avoids them."
+        )
+
     prompt = f"""
 You are an expert at designing prompts for extracting JSON from text using LLMs.
 
@@ -370,7 +381,7 @@ Below is the previous extraction prompt:
 ---
 {prev_prompt}
 ---
-{lessons_section}
+{lessons_section}{validation_section}
 
 Your task:
 1. Aggregate the previous prompt with the lessons learned above into an improved extraction prompt.
@@ -632,6 +643,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
 
         refined_prompt = await _refine_extraction_prompt(
             run_id, step_id, extract_prompt_template, schema, lessons_section, config,
+            validation_errors=step_validation_errors,
         )
 
         refined_prompt_with_feedback = {
