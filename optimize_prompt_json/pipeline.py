@@ -825,9 +825,11 @@ async def run_optimization(config: OptimizationConfig):
 
         if schema_valid_rate == 0.0:
             logger.warning(
-                f"Step {step_id}: schema_valid_rate=0 — rolling back to best prompt."
+                f"Step {step_id}: schema_valid_rate=0 — accepting refined prompt "
+                f"(crafted with validation-error feedback) instead of rolling back."
             )
-            refined_prompt = best_prompt
+            accumulated_lessons = refined_prompt_with_feedback.get("lessons_learned")
+            refined_prompt = new_refined_prompt
             rolled_back = True
         elif prev_score >= 0 and current_score < prev_score - config.rollback_threshold:
             logger.warning(
