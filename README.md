@@ -70,6 +70,7 @@ All parameters are passed via `OptimizationConfig`:
 | `json_distance_target` | `0.01`                          | Stop when JSON distance drops below      |
 | `schema_valid_target`  | `0.99`                          | Minimum schema validity rate             |
 | `rollback_threshold`   | `0.01`                          | Score drop that triggers rollback        |
+| `patience`             | `3`                             | Stop after this many steps with no score improvement (0 to disable) |
 | `text_gen_max_tokens`  | `5000`                          | Max token length for synthetic text generation prompts |
 | `max_tokens`           | `8192`                          | Max output tokens passed to the LLM API              |
 | `rate_limit_delay`     | `0.0`                           | Delay between API requests (seconds)     |
