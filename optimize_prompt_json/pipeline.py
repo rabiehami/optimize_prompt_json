@@ -95,7 +95,7 @@ class OptimizationConfig:
     db_url: str | None = None
     log_dir: str | None = None
     quiet: bool = False
-    text_gen_max_tokens: int = 1000
+    text_gen_max_tokens: int = 5000
     max_tokens: int = 8192
     blacklist_fields: set = field(default_factory=lambda: {
         "id",
