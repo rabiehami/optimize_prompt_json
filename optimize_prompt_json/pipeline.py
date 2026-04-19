@@ -106,6 +106,7 @@ class OptimizationConfig:
         "created_at",
         "updated_at",
     })
+    patience: int = 3
     initial_prompt: str = (
         "Please extract from the text below the data described in the schema below as a JSON object."
     )
@@ -158,7 +159,7 @@ def _extract_json_for_step(run_id, step_id):
     session.close()
 
 
-def _should_stop(step_metrics, step_id, config):
+def _should_stop(step_metrics, step_id, config, steps_without_improvement=0):
     """Check stopping criteria."""
     if step_id >= config.max_steps - 1:
         return True
@@ -166,6 +167,9 @@ def _should_stop(step_metrics, step_id, config):
         return False
     if not step_metrics:
         return False
+    # Stagnation: no improvement for `patience` consecutive steps
+    if config.patience > 0 and steps_without_improvement >= config.patience:
+        return True
     if step_metrics["schema_valid_rate"] < config.schema_valid_target:
         return False
     if (
@@ -793,6 +797,7 @@ async def run_optimization(config: OptimizationConfig):
     best_prompt = None
     best_score = -1.0
     prev_score = -1.0
+    steps_without_improvement = 0
     step_0_metrics = None
     step_0_score = 0.0
     final_metrics = None
@@ -844,7 +849,10 @@ async def run_optimization(config: OptimizationConfig):
             if current_score > best_score:
                 best_score = current_score
                 best_prompt = current_prompt
+                steps_without_improvement = 0
                 logger.info(f"Step {step_id}: new best (score={best_score:.4f})")
+            else:
+                steps_without_improvement += 1
 
         # Console output
         if not config.quiet:
@@ -860,9 +868,11 @@ async def run_optimization(config: OptimizationConfig):
         final_score = current_score
         num_steps = step_id + 1
 
-        if _should_stop(step_metrics, step_id, config):
+        if _should_stop(step_metrics, step_id, config, steps_without_improvement):
             if not config.quiet:
-                console.print_early_stop(step_id)
+                stagnated = config.patience > 0 and steps_without_improvement >= config.patience
+                reason = f"no improvement for {config.patience} consecutive steps" if stagnated else "quality targets met"
+                console.print_early_stop(step_id, reason=reason)
             break
 
     # --- Final extraction with optimized prompt ---

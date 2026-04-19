@@ -53,9 +53,9 @@ def print_step(step_id, max_steps, score, prev_score, metrics, rolled_back=False
     )
 
 
-def print_early_stop(step_id):
+def print_early_stop(step_id, reason="quality targets met"):
     """Print early stopping notice."""
-    print(f"\n  >> Early stopping at step {step_id}: quality targets met.")
+    print(f"\n  >> Early stopping at step {step_id}: {reason}.")
 
 
 def print_final_results(
