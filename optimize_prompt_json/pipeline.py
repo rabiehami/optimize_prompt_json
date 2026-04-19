@@ -831,9 +831,9 @@ async def run_optimization(config: OptimizationConfig):
             accumulated_lessons = refined_prompt_with_feedback.get("lessons_learned")
             refined_prompt = new_refined_prompt
             rolled_back = True
-        elif prev_score >= 0 and current_score < prev_score - config.rollback_threshold:
+        elif best_score >= 0 and current_score < best_score - config.rollback_threshold:
             logger.warning(
-                f"Step {step_id}: score dropped {prev_score:.4f} -> {current_score:.4f}. Rolling back."
+                f"Step {step_id}: score dropped {best_score:.4f} -> {current_score:.4f}. Rolling back."
             )
             refined_prompt = best_prompt
             accumulated_lessons = refined_prompt_with_feedback.get("lessons_learned")
@@ -853,7 +853,9 @@ async def run_optimization(config: OptimizationConfig):
                 rolled_back=rolled_back,
             )
 
-        prev_score = current_score
+        if not rolled_back:
+            prev_score = current_score
+        # After rollback, prev_score stays high so the next step faces a real bar
         final_metrics = step_metrics
         final_score = current_score
         num_steps = step_id + 1
