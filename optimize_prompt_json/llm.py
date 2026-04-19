@@ -53,7 +53,7 @@ async def ask_model(rate_limit_delay=0.0, **kwargs):
 
     llm_model = kwargs.get("llm_model", "")
     api_key = kwargs.get("api_key", "")
-    max_output_tokens = kwargs.pop("max_output_tokens", 8192)
+    max_output_tokens = kwargs.pop("max_tokens", 8192)
 
     if rate_limit_delay > 0:
         await asyncio.sleep(rate_limit_delay)

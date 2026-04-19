@@ -95,8 +95,8 @@ class OptimizationConfig:
     db_url: str | None = None
     log_dir: str | None = None
     quiet: bool = False
-    max_tokens: int = 1000
-    max_output_tokens: int = 8192
+    text_gen_max_tokens: int = 1000
+    max_tokens: int = 8192
     blacklist_fields: set = field(default_factory=lambda: {
         "id",
         "uuid",
@@ -371,7 +371,7 @@ Return your answer as a JSON object with one field:
             json_schema=json.dumps(json_schema),
             prompt_type=PROMPT_TYPE_REFINEMENT,
             api_key=config.api_key_optimizer or config.api_key,
-            max_output_tokens=config.max_output_tokens,
+            max_tokens=config.max_tokens,
         )
     ]
     results = await parallel_requests([prompt], meta, rate_limit_delay=config.rate_limit_delay)
@@ -423,7 +423,7 @@ Do not include explanations or preamble, just the deduplicated lessons list.
             json_schema="",
             prompt_type="lesson_summarization",
             api_key=config.api_key_optimizer or config.api_key,
-            max_output_tokens=config.max_output_tokens,
+            max_tokens=config.max_tokens,
         )
     ]
     try:
@@ -447,7 +447,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
 
     # --- Phase 1: Random JSON generation ---
     rand_group_id = str(uuid4())
-    rand_prompts = create_prompts_for_rand_json(schema, config.batch_size, max_tokens=config.max_tokens)
+    rand_prompts = create_prompts_for_rand_json(schema, config.batch_size, max_tokens=config.text_gen_max_tokens)
     rand_meta = [
         dict(
             run_id=run_id,
@@ -461,7 +461,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
             json_schema=json.dumps(schema),
             prompt_type=PROMPT_TYPE_JSON_GENERATION,
             api_key=config.api_key,
-            max_output_tokens=config.max_output_tokens,
+            max_tokens=config.max_tokens,
         )
         for aid in artifact_ids
     ]
@@ -502,7 +502,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
     text_gen_model = config.llm_text_gen_model or config.llm_model
     synth_group_id = str(uuid4())
     synth_prompts = create_prompts_for_article_generation(
-        [r["content"] for r in rand], reference_text=config.text, max_tokens=config.max_tokens
+        [r["content"] for r in rand], reference_text=config.text, max_tokens=config.text_gen_max_tokens
     )
     synth_meta = [
         dict(
@@ -517,7 +517,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
             json_schema=json.dumps(schema),
             prompt_type=PROMPT_TYPE_TEXT_GENERATION,
             api_key=config.api_key_text_gen or config.api_key,
-            max_output_tokens=config.max_output_tokens,
+            max_tokens=config.max_tokens,
         )
         for r in rand
     ]
@@ -564,7 +564,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
             json_schema=json.dumps(schema),
             prompt_type=PROMPT_TYPE_JSON_EXTRACTION,
             api_key=config.api_key,
-            max_output_tokens=config.max_output_tokens,
+            max_tokens=config.max_tokens,
         )
         for r in synth
     ]
@@ -651,7 +651,7 @@ async def _extract_from_user_text(config, run_id, prompt_override=None, step_id=
         json_schema=json.dumps(schema),
         prompt_type=PROMPT_TYPE_BASELINE_EXTRACTION,
         api_key=config.api_key,
-        max_output_tokens=config.max_output_tokens,
+        max_tokens=config.max_tokens,
     )
     response = await ask_model(
         prompt=prompts[0], rate_limit_delay=config.rate_limit_delay, **meta
