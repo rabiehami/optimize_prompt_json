@@ -756,10 +756,22 @@ async def run_optimization(config: OptimizationConfig):
             llm_optimizer_model=optimizer_model,
             batch_size=config.batch_size,
             max_steps=config.max_steps,
+            min_steps=config.min_steps,
             llm_temp_json_generation=config.temp_json,
             llm_temp_text_generation=config.temp_article,
             llm_temp_json_extraction=config.temp_extract,
             json_schema=json.dumps(config.schema),
+            text_path=config.text_path or None,
+            schema_path=config.schema_path or None,
+            field_overlap_target=config.field_overlap_target,
+            json_distance_target=config.json_distance_target,
+            schema_valid_target=config.schema_valid_target,
+            rollback_threshold=config.rollback_threshold,
+            evaluate_only=int(config.evaluate_only),
+            text_gen_max_tokens=config.text_gen_max_tokens,
+            max_tokens=config.max_tokens,
+            blacklist_fields=json.dumps(sorted(config.blacklist_fields)),
+            initial_prompt=config.initial_prompt,
             created=run_created,
         )
     )
@@ -880,11 +892,24 @@ async def run_optimization(config: OptimizationConfig):
         run.total_completion_tokens = total_completion_tokens
         run.total_price = total_price
         run.total_runtime_seconds = total_runtime
+        # Baseline metrics (step 0)
+        if step_0_metrics:
+            run.baseline_field_overlap = step_0_metrics.get("field_overlap_mean")
+            run.baseline_value_similarity = step_0_metrics.get("value_similarity_mean")
+            run.baseline_json_distance = step_0_metrics.get("json_distance_mean")
+            run.baseline_schema_valid_rate = step_0_metrics.get("schema_valid_rate")
+            run.baseline_score = step_0_score
+        # Final metrics
         if final_metrics:
             run.final_field_overlap = final_metrics.get("field_overlap_mean")
             run.final_value_similarity = final_metrics.get("value_similarity_mean")
             run.final_json_distance = final_metrics.get("json_distance_mean")
             run.final_schema_valid_rate = final_metrics.get("schema_valid_rate")
+            run.final_score = final_score
+        # Prompts & outputs
+        run.optimized_prompt = optimized_prompt_text
+        run.baseline_json = json.dumps(baseline_json) if baseline_json else None
+        run.optimized_json = json.dumps(optimized_json) if optimized_json else None
         session.commit()
     session.close()
 

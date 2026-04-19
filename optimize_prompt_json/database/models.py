@@ -17,27 +17,51 @@ class Run(Base):
     llm_optimizer_model = Column(String)
     batch_size = Column(Integer)
     max_steps = Column(Integer)
+    min_steps = Column(Integer)
     num_steps = Column(Integer)
     llm_temp_json_generation = Column(Float)
     llm_temp_text_generation = Column(Float)
     llm_temp_json_extraction = Column(Float)
     json_schema = Column(Text)
+    text_path = Column(String, nullable=True)
+    schema_path = Column(String, nullable=True)
     created = Column(DateTime(timezone=True), server_default=func.now())
 
+    # Config: targets & thresholds
+    field_overlap_target = Column(Float)
+    json_distance_target = Column(Float)
+    schema_valid_target = Column(Float)
+    rollback_threshold = Column(Float)
+    evaluate_only = Column(Integer)  # boolean as 0/1
+    text_gen_max_tokens = Column(Integer)
+    max_tokens = Column(Integer)
+    blacklist_fields = Column(Text, nullable=True)  # JSON list
+    initial_prompt = Column(Text, nullable=True)
+
+    # Totals
     total_prompt_tokens = Column(Integer)
     total_completion_tokens = Column(Integer)
     total_price = Column(Float)
     total_runtime_seconds = Column(Float)
 
+    # Baseline metrics (step 0)
     baseline_field_overlap = Column(Float)
     baseline_value_similarity = Column(Float)
     baseline_json_distance = Column(Float)
     baseline_schema_valid_rate = Column(Float)
+    baseline_score = Column(Float)
 
+    # Final metrics (last step)
     final_field_overlap = Column(Float)
     final_value_similarity = Column(Float)
     final_json_distance = Column(Float)
     final_schema_valid_rate = Column(Float)
+    final_score = Column(Float)
+
+    # Prompts & outputs
+    optimized_prompt = Column(Text, nullable=True)
+    baseline_json = Column(Text, nullable=True)
+    optimized_json = Column(Text, nullable=True)
 
 
 class LLMResponse(Base):
