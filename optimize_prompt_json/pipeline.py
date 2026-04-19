@@ -326,6 +326,33 @@ def _aggregate_step_metrics(run_id, step_id):
     return agg
 
 
+def _collect_validation_errors(run_id, step_id, schema):
+    """Collect unique validation error messages from all extractions in a step."""
+    from jsonschema import validate, ValidationError
+
+    session = get_session()
+    rows = (
+        session.query(LLMResponse)
+        .filter(LLMResponse.run_id == run_id)
+        .filter(LLMResponse.step_id == step_id)
+        .filter(LLMResponse.prompt_type == PROMPT_TYPE_JSON_EXTRACTION)
+        .all()
+    )
+    errors = set()
+    for r in rows:
+        if not r.json:
+            continue
+        try:
+            extracted = json.loads(r.json)
+            validate(extracted, schema)
+        except ValidationError as e:
+            errors.add(e.message)
+        except Exception:
+            continue
+    session.close()
+    return list(errors) if errors else None
+
+
 # =====================================================================
 # Refinement
 # =====================================================================
@@ -439,7 +466,7 @@ Do not include explanations or preamble, just the deduplicated lessons list.
 # =====================================================================
 
 
-async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulated_lessons=None):
+async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulated_lessons=None, prev_validation_errors=None):
     """Execute one optimization step: generate → text → extract → evaluate → refine."""
     schema = config.schema
     extract_prompt_template = prev_extract_prompt
@@ -528,18 +555,20 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
         extract_prompts = extract_json_from_text(
             [r["content"] for r in synth], schema,
             refined_prompt=config.initial_prompt,
+            validation_errors=prev_validation_errors,
             accumulated_lessons=accumulated_lessons,
         )
         extract_prompt_template = extract_prompts[0] if extract_prompts else ""
     else:
         if isinstance(extract_prompt_template, dict) and "refined_prompt" in extract_prompt_template:
             refined_prompt = extract_prompt_template["refined_prompt"]
-            validation_errors = extract_prompt_template.get("validation_errors")
+            validation_errors = prev_validation_errors
             diffs = extract_prompt_template.get("diffs")
             fdb = extract_prompt_template.get("field_distance_breakdown")
         else:
             refined_prompt = extract_prompt_template
-            validation_errors = diffs = fdb = None
+            validation_errors = prev_validation_errors
+            diffs = fdb = None
 
         extract_prompts = extract_json_from_text(
             [r["content"] for r in synth], schema,
@@ -577,6 +606,9 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
     _evaluate_step(run_id, step_id, schema)
     step_metrics = _aggregate_step_metrics(run_id, step_id)
 
+    # Collect validation errors for feedback to next step
+    step_validation_errors = _collect_validation_errors(run_id, step_id, schema)
+
     # --- Phase 6: Refine prompt ---
     if not config.evaluate_only:
         fdb = _get_field_distance_breakdown_for_refinement(run_id, step_id, schema)
@@ -605,7 +637,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
         refined_prompt_with_feedback = {
             "refined_prompt": refined_prompt,
             "lessons_learned": combined_lessons,
-            "validation_errors": None,
+            "validation_errors": step_validation_errors,
             "diffs": diffs_for_feedback,
             "field_distance_breakdown": fdb,
         }
@@ -613,7 +645,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
         refined_prompt_with_feedback = {
             "refined_prompt": None,
             "lessons_learned": None,
-            "validation_errors": None,
+            "validation_errors": step_validation_errors,
             "diffs": None,
             "field_distance_breakdown": None,
         }
@@ -732,6 +764,7 @@ async def run_optimization(config: OptimizationConfig):
 
     refined_prompt = None
     accumulated_lessons = None
+    prev_validation_errors = None
     num_steps = 0
     best_prompt = None
     best_score = -1.0
@@ -748,11 +781,13 @@ async def run_optimization(config: OptimizationConfig):
             config, run_id, step_id,
             prev_extract_prompt=refined_prompt,
             accumulated_lessons=accumulated_lessons,
+            prev_validation_errors=prev_validation_errors,
         )
 
         step_metrics, refined_prompt_with_feedback, _ = result
         current_score = compute_composite_score(step_metrics)
         new_refined_prompt = refined_prompt_with_feedback.get("refined_prompt")
+        prev_validation_errors = refined_prompt_with_feedback.get("validation_errors")
 
         if step_id == 0:
             step_0_metrics = step_metrics
