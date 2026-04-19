@@ -96,6 +96,7 @@ class OptimizationConfig:
     log_dir: str | None = None
     quiet: bool = False
     max_tokens: int = 1000
+    max_output_tokens: int = 8192
     blacklist_fields: set = field(default_factory=lambda: {
         "id",
         "uuid",
@@ -370,6 +371,7 @@ Return your answer as a JSON object with one field:
             json_schema=json.dumps(json_schema),
             prompt_type=PROMPT_TYPE_REFINEMENT,
             api_key=config.api_key_optimizer or config.api_key,
+            max_output_tokens=config.max_output_tokens,
         )
     ]
     results = await parallel_requests([prompt], meta, rate_limit_delay=config.rate_limit_delay)
@@ -421,6 +423,7 @@ Do not include explanations or preamble, just the deduplicated lessons list.
             json_schema="",
             prompt_type="lesson_summarization",
             api_key=config.api_key_optimizer or config.api_key,
+            max_output_tokens=config.max_output_tokens,
         )
     ]
     try:
@@ -458,6 +461,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
             json_schema=json.dumps(schema),
             prompt_type=PROMPT_TYPE_JSON_GENERATION,
             api_key=config.api_key,
+            max_output_tokens=config.max_output_tokens,
         )
         for aid in artifact_ids
     ]
@@ -513,6 +517,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
             json_schema=json.dumps(schema),
             prompt_type=PROMPT_TYPE_TEXT_GENERATION,
             api_key=config.api_key_text_gen or config.api_key,
+            max_output_tokens=config.max_output_tokens,
         )
         for r in rand
     ]
@@ -559,6 +564,7 @@ async def _run_step(config, run_id, step_id, prev_extract_prompt=None, accumulat
             json_schema=json.dumps(schema),
             prompt_type=PROMPT_TYPE_JSON_EXTRACTION,
             api_key=config.api_key,
+            max_output_tokens=config.max_output_tokens,
         )
         for r in synth
     ]
@@ -645,6 +651,7 @@ async def _extract_from_user_text(config, run_id, prompt_override=None, step_id=
         json_schema=json.dumps(schema),
         prompt_type=PROMPT_TYPE_BASELINE_EXTRACTION,
         api_key=config.api_key,
+        max_output_tokens=config.max_output_tokens,
     )
     response = await ask_model(
         prompt=prompts[0], rate_limit_delay=config.rate_limit_delay, **meta
