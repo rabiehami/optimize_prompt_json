@@ -58,6 +58,7 @@ class LLMResponse(Base):
     prompt_type = Column(String)
     content = Column(Text)
     json = Column(Text)
+    finish_reason = Column(String, nullable=True)
     completion_tokens = Column(Integer)
     prompt_tokens = Column(Integer)
     total_tokens = Column(Integer)
