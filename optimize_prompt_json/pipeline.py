@@ -396,6 +396,8 @@ CRITICAL CONSTRAINTS:
 - Only make the refined prompt longer if a genuinely new insight requires it.
 - Prefer concise, direct instructions over verbose explanations. Remove redundant phrasing.
 - The schema is RIGID and will not be changed. Focus entirely on improving the extraction prompt.
+- For enum fields: the refined prompt must instruct the extractor to only produce values that appear in the enum — never infer from contextual signals not present in the text. If no valid enum value can be extracted, fall back to the first enum value.
+- Never instruct the extractor to fabricate or guess values that have no evidence in the source text.
 
 Return your answer as a JSON object with one field:
 'refined_prompt': <your improved extraction prompt>
