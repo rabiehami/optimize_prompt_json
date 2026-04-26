@@ -77,7 +77,7 @@ class OptimizationConfig:
     llm_model: str = "groq/llama-3.1-8b-instant"
     llm_text_gen_model: str | None = None
     llm_optimizer_model: str | None = None
-    batch_size: int = 5
+    batch_size: int = 10
     max_steps: int = 10
     min_steps: int = 0
     temp_json: float = 0.5
@@ -350,7 +350,8 @@ def _collect_validation_errors(run_id, step_id, schema):
             extracted = json.loads(r.json)
             validate(extracted, schema)
         except ValidationError as e:
-            errors.add(e.message)
+            path = " > ".join(str(p) for p in e.absolute_path) or "root"
+            errors.add(f"At {path}: {e.message}")
         except Exception:
             continue
     session.close()
