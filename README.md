@@ -60,7 +60,7 @@ All parameters are passed via `OptimizationConfig`:
 | `llm_model`            | `groq/llama-3.1-8b-instant`     | LLM for JSON generation and extraction   |
 | `llm_text_gen_model`   | same as `llm_model`             | LLM for synthetic text generation        |
 | `llm_optimizer_model`  | same as `llm_model`             | LLM for prompt refinement                |
-| `batch_size`           | `10`                            | Synthetic examples per step              |
+| `batch_size`           | `5`                             | Synthetic examples per step              |
 | `max_steps`            | `10`                            | Maximum optimization steps               |
 | `min_steps`            | `0`                             | Minimum steps before early stopping      |
 | `temp_json`            | `0.5`                           | Temperature for JSON generation          |

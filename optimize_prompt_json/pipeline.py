@@ -77,7 +77,7 @@ class OptimizationConfig:
     llm_model: str = "groq/llama-3.1-8b-instant"
     llm_text_gen_model: str | None = None
     llm_optimizer_model: str | None = None
-    batch_size: int = 10
+    batch_size: int = 5
     max_steps: int = 10
     min_steps: int = 0
     temp_json: float = 0.5
@@ -850,7 +850,10 @@ async def run_optimization(config: OptimizationConfig):
             refined_prompt = new_refined_prompt
             if current_score > best_score:
                 best_score = current_score
-                best_prompt = current_prompt
+                # Resolve None (meaning "use baseline prompt") to the actual prompt
+                # string so the final `best_prompt or refined_prompt` fallback is
+                # never triggered incorrectly by a falsy best_prompt.
+                best_prompt = current_prompt if current_prompt is not None else config.initial_prompt
                 steps_without_improvement = 0
                 logger.info(f"Step {step_id}: new best (score={best_score:.4f})")
             else:
